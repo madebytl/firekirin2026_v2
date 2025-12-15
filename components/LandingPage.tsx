@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: (username: string) => void;
@@ -7,6 +7,15 @@ interface LandingPageProps {
 
 type AuthMode = 'signup' | 'claim';
 type Stage = 'idle' | 'processing' | 'locked' | 'verified';
+
+const FAKE_ACTIVITIES = [
+    { user: 'DragonSlayer99', action: 'Claimed', prize: '5,000 COINS', color: 'text-yellow-400' },
+    { user: 'LuckyFish_88', action: 'Just Won', prize: 'MINI JACKPOT', color: 'text-red-400' },
+    { user: 'KirinMaster', action: 'Verified', prize: 'INSTANT ACCESS', color: 'text-green-400' },
+    { user: 'SlotKing', action: 'Withdrew', prize: '$450.00 CASH', color: 'text-green-400' },
+    { user: 'SarahJ_22', action: 'Claimed', prize: 'WELCOME BONUS', color: 'text-yellow-400' },
+    { user: 'OceanHunter', action: 'Hit', prize: 'x500 MULTIPLIER', color: 'text-purple-400' },
+];
 
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [authMode, setAuthMode] = useState<AuthMode>('signup'); 
@@ -22,6 +31,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [stage, setStage] = useState<Stage>('idle');
   const [processLog, setProcessLog] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
+  
+  // Live Activity State
+  const [currentActivity, setCurrentActivity] = useState(FAKE_ACTIVITIES[0]);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     // Scarcity ticker
@@ -32,15 +45,68 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     return () => clearInterval(timer);
   }, []);
 
+  // Audio System
+  const initAudio = () => {
+    if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume().catch(e => console.log("Audio resume failed", e));
+    }
+  };
+
+  const playSound = (type: 'tick' | 'coin' | 'alert') => {
+      if (!audioCtxRef.current) return;
+      const ctx = audioCtxRef.current;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      if (type === 'tick') {
+          // Tech beep
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(800, t);
+          osc.frequency.exponentialRampToValueAtTime(200, t + 0.05);
+          gain.gain.setValueAtTime(0.05, t);
+          gain.gain.linearRampToValueAtTime(0, t + 0.05);
+          osc.start(t);
+          osc.stop(t + 0.05);
+      } else if (type === 'coin') {
+          // High pitch ding
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(1200, t);
+          osc.frequency.exponentialRampToValueAtTime(1800, t + 0.1);
+          gain.gain.setValueAtTime(0.05, t);
+          gain.gain.linearRampToValueAtTime(0, t + 0.5);
+          osc.start(t);
+          osc.stop(t + 0.5);
+      } else if (type === 'alert') {
+          // Security alert
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(200, t);
+          osc.frequency.linearRampToValueAtTime(150, t + 0.3);
+          gain.gain.setValueAtTime(0.1, t);
+          gain.gain.linearRampToValueAtTime(0, t + 0.3);
+          osc.start(t);
+          osc.stop(t + 0.3);
+      }
+  };
+
   // Simple Promise-based delay
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const runProcessingSequence = async () => {
       if (stage !== 'idle') return; // strict guard
       
+      // Init audio context on user interaction
+      initAudio();
+
       setStage('processing');
       setProgress(0);
       setProcessLog(["> ESTABLISHING SECURE CONNECTION..."]);
+      playSound('tick');
 
       // EXACT 5 SECOND DELAY LOOP
       // 10 steps of 500ms = 5000ms
@@ -52,6 +118,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           
           const currentPct = i * 10;
           setProgress(currentPct);
+          playSound('tick');
+
+          // Rotate activity
+          if (i % 2 === 0) {
+              const randomActivity = FAKE_ACTIVITIES[Math.floor(Math.random() * FAKE_ACTIVITIES.length)];
+              setCurrentActivity(randomActivity);
+              playSound('coin');
+          }
 
           // Step-based logging
           if (i === 2) setProcessLog(p => [...p, "> ENCRYPTING SESSION DATA..."]);
@@ -63,6 +137,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
       // Small buffer after 100% before locking
       await wait(500);
+      playSound('alert');
       triggerLocker();
   };
 
@@ -85,6 +160,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     if (stage === 'verified') {
         // Final entry
         setStage('processing');
+        initAudio();
+        playSound('coin');
         setTimeout(() => onLogin(username), 1000);
         return;
     }
@@ -96,6 +173,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
   const handleVerifyCheck = () => {
       setStage('verified');
+      initAudio();
+      playSound('coin');
       setProcessLog(prev => [...prev, "> VERIFICATION SUCCESSFUL", "> UNLOCKING ASSETS..."]);
       setProgress(100);
       setTimeout(() => {
@@ -165,13 +244,35 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     {/* Processing Overlay */}
                     {stage === 'processing' && (
                         <div className="absolute inset-0 bg-slate-900 z-20 flex flex-col items-center justify-center p-8">
-                            <Terminal className="w-12 h-12 md:w-16 md:h-16 text-kirin-blue mb-6 animate-pulse" />
-                            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-4 border border-slate-700">
-                                <div 
-                                    className="h-full bg-kirin-blue transition-all duration-300 ease-out"
-                                    style={{ width: `${progress}%` }}
-                                ></div>
+                            
+                            {/* Dynamic Live User Activity */}
+                            <div className="absolute top-8 w-full px-8">
+                                <div className="bg-white/5 border border-white/10 rounded-xl p-3 flex items-center gap-4 animate-[float_4s_ease-in-out_infinite] shadow-lg">
+                                    <div className="bg-slate-800 p-2 rounded-full border border-white/10">
+                                        <Bell className="w-4 h-4 text-kirin-gold animate-[ring_3s_infinite]" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Live Activity</div>
+                                        <div className="text-xs text-white truncate animate-in slide-in-from-bottom-2 fade-in duration-300 key={currentActivity.user}">
+                                            <span className="font-bold text-gray-300">{currentActivity.user}</span> 
+                                            <span className="mx-1 text-gray-500">{currentActivity.action}</span>
+                                            <span className={`font-black ${currentActivity.color} drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]`}>{currentActivity.prize}</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+
+                            <Terminal className="w-12 h-12 md:w-16 md:h-16 text-kirin-blue mb-6 animate-pulse mt-12" />
+                            
+                            <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-4 border border-slate-700 relative">
+                                <div 
+                                    className="h-full bg-kirin-blue transition-all duration-300 ease-out relative"
+                                    style={{ width: `${progress}%` }}
+                                >
+                                    <div className="absolute right-0 top-0 h-full w-2 bg-white/50 animate-pulse box-shadow-[0_0_10px_white]"></div>
+                                </div>
+                            </div>
+                            
                             <div className="w-full font-mono text-[10px] md:text-xs text-green-400 space-y-1 h-32 overflow-hidden bg-black/50 p-3 rounded border border-white/5 flex flex-col justify-end">
                                 {processLog.map((log, i) => (
                                     <div key={i} className="animate-in fade-in slide-in-from-bottom-2">{log}</div>
