@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift } from 'lucide-react';
+import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: (username: string) => void;
@@ -198,10 +198,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                 <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition" />
                                 I HAVE COMPLETED VERIFICATION
                             </button>
-                            
-                            <p className="text-[10px] text-gray-500 mt-4 leading-tight">
-                                Once verification is complete, the window will close automatically and your bonus will be credited.
-                            </p>
                         </div>
                     )}
 
@@ -293,6 +289,25 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                  </p>
             </div>
         </div>
+
+        {/* Toast Notification for Locker */}
+        {stage === 'locked' && (
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md bg-slate-900/90 backdrop-blur-xl border border-kirin-gold/20 p-4 rounded-xl shadow-[0_0_30px_rgba(0,0,0,0.6)] flex items-start gap-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-500">
+                <div className="bg-kirin-gold/10 p-2 rounded-full shrink-0">
+                    <Info className="w-5 h-5 text-kirin-gold" />
+                </div>
+                <div className="flex-1">
+                    <h4 className="text-kirin-gold font-bold text-xs uppercase mb-1 tracking-wider">Verification Pending</h4>
+                    <p className="text-gray-300 text-xs leading-relaxed font-medium">
+                        Once verification is complete, the window will close automatically and your bonus will be credited.
+                    </p>
+                </div>
+                {/* Loading Indicator */}
+                <div className="shrink-0">
+                    <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
+                </div>
+            </div>
+        )}
     </div>
   );
 };
