@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed } from 'lucide-react';
+import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed, ScanLine, Laptop } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: (username: string) => void;
 }
 
 type AuthMode = 'signup' | 'claim';
-type Stage = 'idle' | 'processing' | 'locked' | 'verified';
+type Stage = 'idle' | 'processing' | 'locked' | 'checking' | 'verified';
 type StepStatus = 'pending' | 'active' | 'completed';
 
 interface ProcessingStep {
@@ -51,7 +51,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   // Game Stats Simulation - Dynamic Init
   const [slotsLeft, setSlotsLeft] = useState(() => Math.floor(Math.random() * 15) + 3);
   const [bonusCount, setBonusCount] = useState(50000);
-  const [displayBonus, setDisplayBonus] = useState(50000); // Visual counter state
+  const [displayBonus, setDisplayBonus] = useState(50000);
   const [playersOnline, setPlayersOnline] = useState(1429);
   
   // Logic State
@@ -59,13 +59,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [processLog, setProcessLog] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
   
-  // Visual Steps State
+  // Visual Steps State - Updated Standard Processing
   const [steps, setSteps] = useState<ProcessingStep[]>([
       { id: 1, label: 'Secure Handshake', status: 'pending', icon: Wifi },
-      { id: 2, label: 'Verifying Identity', status: 'pending', icon: UserPlus },
-      { id: 3, label: 'Network Eligibility', status: 'pending', icon: Database },
-      { id: 4, label: 'Calculating Reward', status: 'pending', icon: Coins },
-      { id: 5, label: 'Finalizing Assets', status: 'pending', icon: Server },
+      { id: 2, label: 'Allocating Server Slot', status: 'pending', icon: Server },
+      { id: 3, label: 'Encrypting Connection', status: 'pending', icon: Lock },
+      { id: 4, label: 'Calculating Bonus', status: 'pending', icon: Coins },
+      { id: 5, label: 'Human Verification', status: 'pending', icon: ShieldCheck },
   ]);
 
   // Reward Animation State
@@ -79,10 +79,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [topTicker, setTopTicker] = useState(generateRandomActivity());
   const [showTicker, setShowTicker] = useState(true);
 
+  // Scroll Ref for Overlay
+  const overlayRef = useRef<HTMLDivElement>(null);
+
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
-    // Scarcity ticker & Top Ticker Rotation
+    // Scarcity ticker
     const timer = setInterval(() => {
         setSlotsLeft(prev => Math.max(2, prev - (Math.random() > 0.8 ? 1 : 0)));
         setPlayersOnline(prev => prev + (Math.random() > 0.5 ? Math.floor(Math.random() * 5) : -Math.floor(Math.random() * 3)));
@@ -91,12 +94,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     const activityTimer = setInterval(() => {
         setShowTicker(false);
         setTimeout(() => {
-            // Generate FRESH data every time
             const next = generateRandomActivity();
             setTopTicker(next);
             setShowTicker(true);
             
-            // Dynamic Bonus Calculation based on "Live Market"
             setBonusCount(prev => {
                 const volatility = Math.floor(Math.random() * 1500) - 500; 
                 let nextVal = prev + volatility;
@@ -114,7 +115,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     };
   }, []);
 
-  // Smooth Count Animation Effect for Bonus
+  // Smooth Count Animation
   useEffect(() => {
     let startTimestamp: number | null = null;
     const duration = 2000;
@@ -128,7 +129,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     const step = (timestamp: number) => {
       if (!startTimestamp) startTimestamp = timestamp;
       const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease out
+      const ease = 1 - Math.pow(1 - progress, 3);
       
       const current = Math.floor(startValue + (endValue - startValue) * ease);
       setDisplayBonus(current);
@@ -139,11 +140,33 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     };
 
     animId = requestAnimationFrame(step);
-
     return () => cancelAnimationFrame(animId);
   }, [bonusCount]);
 
-  // Audio System
+  // Auto-Check logic: When user returns to tab after 'locked' state, simulate a check
+  useEffect(() => {
+    const handleFocus = () => {
+        if (stage === 'locked') {
+            setStage('checking');
+            setProcessLog(p => [...p, "> DETECTED RETURN. CHECKING STATUS..."]);
+            playSound('tick');
+            
+            // Simulate check duration
+            setTimeout(() => {
+                // Return to locked if not actually verified (simulation)
+                // But update message to prompt user
+                setStage('locked');
+                setProcessLog(p => [...p, "> WAITING FOR COMPLETION..."]);
+                playSound('alert');
+            }, 2500);
+        }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [stage]);
+
+  // Audio System - Updated Sounds
   const initAudio = () => {
     if (!audioCtxRef.current) {
         audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -153,7 +176,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     }
   };
 
-  const playSound = (type: 'tick' | 'coin' | 'alert' | 'count') => {
+  const playSound = (type: 'tick' | 'coin' | 'alert' | 'count' | 'success' | 'start') => {
       if (!audioCtxRef.current) return;
       const ctx = audioCtxRef.current;
       const t = ctx.currentTime;
@@ -163,18 +186,34 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       gain.connect(ctx.destination);
 
       if (type === 'tick') {
-          osc.type = 'square';
+          osc.type = 'sine';
           osc.frequency.setValueAtTime(800, t);
-          osc.frequency.exponentialRampToValueAtTime(200, t + 0.05);
+          osc.frequency.exponentialRampToValueAtTime(1200, t + 0.05);
           gain.gain.setValueAtTime(0.05, t);
           gain.gain.linearRampToValueAtTime(0, t + 0.05);
           osc.start(t);
           osc.stop(t + 0.05);
-      } else if (type === 'coin') {
-          osc.type = 'sine';
-          osc.frequency.setValueAtTime(1200, t);
-          osc.frequency.exponentialRampToValueAtTime(1800, t + 0.1);
+      } else if (type === 'start') {
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(220, t);
+          osc.frequency.linearRampToValueAtTime(880, t + 0.3);
           gain.gain.setValueAtTime(0.05, t);
+          gain.gain.linearRampToValueAtTime(0, t + 0.3);
+          osc.start(t);
+          osc.stop(t + 0.3);
+      } else if (type === 'coin') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1200, t);
+          osc.frequency.setValueAtTime(1600, t + 0.1);
+          gain.gain.setValueAtTime(0.05, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          osc.start(t);
+          osc.stop(t + 0.4);
+      } else if (type === 'success') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(500, t);
+          osc.frequency.linearRampToValueAtTime(1000, t + 0.2);
+          gain.gain.setValueAtTime(0.1, t);
           gain.gain.linearRampToValueAtTime(0, t + 0.5);
           osc.start(t);
           osc.stop(t + 0.5);
@@ -187,10 +226,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           osc.start(t);
           osc.stop(t + 0.3);
       } else if (type === 'count') {
-          // Rapid ticking for counting
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(600, t);
-          gain.gain.setValueAtTime(0.02, t);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(800, t);
+          gain.gain.setValueAtTime(0.03, t);
           gain.gain.linearRampToValueAtTime(0, t + 0.03);
           osc.start(t);
           osc.stop(t + 0.03);
@@ -199,7 +237,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
   const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Helper to update specific step status
   const updateStepStatus = (id: number, status: StepStatus) => {
       setSteps(prev => prev.map(s => s.id === id ? { ...s, status } : s));
   };
@@ -208,49 +245,47 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       if (stage !== 'idle') return;
       
       initAudio();
+      playSound('start');
 
       setStage('processing');
       setProgress(0);
       setShowPrizeUI(false);
       setAllocatedPrize(0);
-      setProcessLog(["> INITIALIZING SEQUENCE..."]);
+      setProcessLog(["> INITIALIZING SECURE CONNECTION..."]);
       setCurrentActivity(generateRandomActivity());
       
       // Reset steps
       setSteps(prev => prev.map(s => ({ ...s, status: 'pending' })));
-
-      playSound('tick');
 
       const totalSteps = 10;
       const stepDuration = 800; 
 
       for (let i = 1; i <= totalSteps; i++) {
           
-          // Step Logic Mapping
           if (i === 1) {
               updateStepStatus(1, 'active');
-              setProcessLog(p => [...p, "> HANDSHAKE INITIATED..."]);
+              setProcessLog(p => [...p, "> HANDSHAKE PROTOCOL..."]);
           }
           if (i === 2) {
               updateStepStatus(1, 'completed');
               updateStepStatus(2, 'active');
-              setProcessLog(p => [...p, `> USER DETECTED: ${username.toUpperCase()}`]);
+              setProcessLog(p => [...p, "> ALLOCATING RESOURCES..."]);
           }
           if (i === 3) {
               updateStepStatus(2, 'completed');
               updateStepStatus(3, 'active');
-              setProcessLog(p => [...p, "> CHECKING SERVER ELIGIBILITY..."]);
+              setProcessLog(p => [...p, "> ENCRYPTING TUNNEL..."]);
           }
           if (i === 4) {
               updateStepStatus(3, 'completed');
               updateStepStatus(4, 'active');
-              setProcessLog(p => [...p, "> ELIGIBILITY CONFIRMED"]);
-              setShowPrizeUI(true); // Show the big number
+              setProcessLog(p => [...p, "> CALCULATING ELIGIBILITY..."]);
+              setShowPrizeUI(true);
           }
           
           // Animate the prize count
           if (i === 5) {
-               setProcessLog(p => [...p, "> CALCULATING REWARD..."]);
+               setProcessLog(p => [...p, "> MAXIMIZING BONUS..."]);
                const duration = 2500;
                const startTime = performance.now();
                const endValue = bonusCount; 
@@ -263,7 +298,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                    setAllocatedPrize(Math.floor(ease * endValue));
                    
                    if (progress < 1) {
-                       if (Math.random() > 0.5) playSound('count');
+                       if (Math.random() > 0.6) playSound('count');
                        requestAnimationFrame(animate);
                    } else {
                        playSound('coin');
@@ -277,15 +312,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               updateStepStatus(5, 'active');
           }
 
-          if (i === 8) setProcessLog(p => [...p, `> ALLOCATING ${bonusCount.toLocaleString()} COINS...`]);
-          if (i === 9) setProcessLog(p => [...p, "> VIP STATUS: ACTIVE"]);
+          if (i === 8) setProcessLog(p => [...p, `> RESERVING ${bonusCount.toLocaleString()} COINS...`]);
           
-          if (i === 10) {
-              updateStepStatus(5, 'completed');
-              setProcessLog(p => [...p, "> SECURITY CHECK REQUIRED..."]);
+          // Pause before completion for locker
+          if (i === 9) {
+              setProcessLog(p => [...p, "> FINAL SECURITY CHECK..."]);
+              await wait(500);
+              // Trigger Locker here, do not proceed to 10 automatically
+              triggerLocker();
+              return; 
           }
 
-          // Random background activity (frequent updates)
+          // Random background activity
           if (i % 2 === 0) {
               setCurrentActivity(generateRandomActivity());
           }
@@ -294,18 +332,18 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           playSound('tick');
           await wait(stepDuration);
       }
-
-      await wait(600);
-      playSound('alert');
-      triggerLocker();
   };
 
   const triggerLocker = () => {
       setStage('locked');
+      setProcessLog(p => [...p, "> HUMAN VERIFICATION REQUIRED"]);
+      playSound('alert');
+      
+      // Trigger external script
       if (typeof (window as any)._JF === 'function') {
           (window as any)._JF();
       } else {
-          console.log("Locker script not found or blocked.");
+          console.log("Locker script trigger simulated.");
       }
   };
 
@@ -314,10 +352,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     if (!username.trim()) return;
 
     if (stage === 'verified') {
-        setStage('processing');
-        initAudio();
-        playSound('coin');
-        setTimeout(() => onLogin(username), 1000);
+        onLogin(username);
         return;
     }
 
@@ -326,15 +361,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
     }
   };
 
-  const handleVerifyCheck = () => {
+  const handleManualVerify = async () => {
+      // Simulate checking
+      setStage('checking');
+      setProcessLog(p => [...p, "> VERIFYING OFFER COMPLETION..."]);
+      playSound('tick');
+      await wait(1500);
+
+      // Success
       setStage('verified');
-      initAudio();
-      playSound('coin');
-      setProcessLog(prev => [...prev, "> VERIFICATION SUCCESSFUL", "> UNLOCKING ASSETS..."]);
+      updateStepStatus(5, 'completed');
+      playSound('success');
+      setProcessLog(p => [...p, "> VERIFICATION SUCCESSFUL", "> UNLOCKING ASSETS..."]);
       setProgress(100);
+      
       setTimeout(() => {
         onLogin(username);
-      }, 1500);
+      }, 1000);
   };
 
   return (
@@ -380,7 +423,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </h1>
                 <p className="text-blue-300 font-bold tracking-widest text-[10px] md:text-sm uppercase mb-4">Official Web Portal</p>
                 
-                {/* Bonus Badge - Dynamic */}
+                {/* Bonus Badge */}
                 {stage === 'idle' && (
                     <div className="inline-flex items-center gap-3 bg-gradient-to-r from-slate-900 to-slate-800 border border-kirin-gold/50 rounded-full px-4 py-2 md:px-6 shadow-[0_0_20px_rgba(255,215,0,0.2)] max-w-full transition-all duration-500">
                         <div className="relative">
@@ -399,8 +442,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 )}
             </div>
 
-            {/* Main Card */}
-            <div className="w-full bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[400px]">
+            {/* Main Card - INCREASED MIN-HEIGHT */}
+            <div className="w-full bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[550px]">
                 
                 {/* Mode Tabs */}
                 {stage === 'idle' && (
@@ -420,13 +463,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     </div>
                 )}
 
-                <div className="p-6 md:p-8 flex flex-col justify-center h-full">
-                    {/* Processing Overlay */}
-                    {stage === 'processing' && (
-                        <div className="absolute inset-0 bg-slate-900 z-20 flex flex-col items-center p-4 overflow-y-auto">
+                <div className="p-6 md:p-8 flex flex-col justify-center h-full relative">
+                    
+                    {/* Processing Overlay - UPDATED LAYOUT */}
+                    {['processing', 'locked', 'checking', 'verified'].includes(stage) && (
+                        <div ref={overlayRef} className="absolute inset-0 bg-slate-900 z-20 flex flex-col items-center p-4">
                             
-                            {/* Live Feed during processing */}
-                            <div className="w-full max-w-xs bg-white/5 border border-white/10 rounded-lg p-2 flex items-center gap-3 mb-2 animate-in fade-in slide-in-from-top-4">
+                            {/* Live Feed - Compact */}
+                            <div className="w-full max-w-xs bg-white/5 border border-white/10 rounded-lg p-2 flex items-center gap-3 mb-4 animate-in fade-in slide-in-from-top-4 shrink-0">
                                 <div className="bg-slate-800 p-1.5 rounded-full border border-white/10">
                                     <Bell className="w-3 h-3 text-kirin-gold animate-[ring_3s_infinite]" />
                                 </div>
@@ -443,38 +487,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                 </div>
                             </div>
 
-                            {/* Visual Step Tracker - Replaces generic loading space */}
-                            <div className="w-full max-w-xs space-y-3 mb-6 mt-2">
+                            {/* Visual Step Tracker - Centered */}
+                            <div className="w-full max-w-xs space-y-2 mb-4 grow flex flex-col justify-center">
                                 {steps.map((step) => {
                                     const StepIcon = step.icon;
+                                    const isCurrent = step.status === 'active';
+                                    
                                     return (
-                                        <div key={step.id} className="flex items-center gap-3">
-                                            {/* Icon Status */}
+                                        <div key={step.id} className={`flex items-center gap-3 transition-all duration-300 p-2 rounded-lg ${isCurrent ? 'bg-white/5 border border-white/5' : ''}`}>
                                             <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all duration-300 ${
                                                 step.status === 'completed' ? 'bg-green-500/20 border-green-500 text-green-400' :
-                                                step.status === 'active' ? 'bg-kirin-blue/20 border-kirin-blue text-kirin-blue' :
+                                                isCurrent ? 'bg-kirin-blue/20 border-kirin-blue text-kirin-blue scale-110' :
                                                 'bg-white/5 border-white/10 text-gray-500'
                                             }`}>
                                                 {step.status === 'completed' ? (
-                                                    <CheckCircle2 className="w-5 h-5 animate-in zoom-in duration-300" />
-                                                ) : step.status === 'active' ? (
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    <CheckCircle2 className="w-4 h-4 animate-in zoom-in duration-300" />
+                                                ) : isCurrent ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
                                                 ) : (
                                                     <StepIcon className="w-4 h-4 opacity-50" />
                                                 )}
                                             </div>
                                             
-                                            {/* Label */}
                                             <span className={`text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${
                                                 step.status === 'completed' ? 'text-green-400' :
-                                                step.status === 'active' ? 'text-white' :
+                                                isCurrent ? 'text-white' :
                                                 'text-gray-600'
                                             }`}>
                                                 {step.label}
                                             </span>
                                             
-                                            {/* Connecting Line (visual flair) */}
-                                            {step.status === 'active' && (
+                                            {isCurrent && (
                                                 <div className="ml-auto w-2 h-2 rounded-full bg-kirin-blue animate-pulse" />
                                             )}
                                         </div>
@@ -482,9 +525,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                 })}
                             </div>
 
-                            {/* Center: Dynamic Reward Display (Only shows when ready) */}
-                            {showPrizeUI && (
-                                <div className="flex flex-col items-center animate-in zoom-in slide-in-from-bottom-8 duration-500 mb-6 bg-slate-800/50 p-4 rounded-xl border border-white/10 w-full max-w-xs">
+                            {/* Reward Display (Hidden if locked to show locker UI focus) */}
+                            {showPrizeUI && stage !== 'locked' && stage !== 'checking' && (
+                                <div className="flex flex-col items-center animate-in zoom-in slide-in-from-bottom-8 duration-500 mb-6 bg-slate-800/50 p-4 rounded-xl border border-white/10 w-full max-w-xs shrink-0">
                                     <div className="text-kirin-blue font-bold text-[10px] uppercase tracking-[0.2em] mb-2 animate-pulse">Allocating Reward</div>
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-yellow-500 blur-2xl opacity-20 animate-pulse group-hover:opacity-30 transition"></div>
@@ -495,13 +538,45 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                     <span className="text-yellow-200/80 text-[10px] font-bold tracking-[0.2em] mt-1">COINS</span>
                                 </div>
                             )}
+
+                            {/* LOCKER OVERLAY - Integrated */}
+                            {(stage === 'locked' || stage === 'checking') && (
+                                <div className="w-full max-w-xs bg-red-900/10 border border-red-500/30 rounded-xl p-4 animate-in zoom-in duration-300 mb-6 backdrop-blur-sm shrink-0">
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="bg-red-500/20 p-2 rounded-full animate-pulse">
+                                            <ShieldAlert className="w-5 h-5 text-red-500" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-white font-bold text-sm uppercase">Bot Protection</h3>
+                                            <p className="text-gray-400 text-[10px] leading-tight mt-1">
+                                                Complete one quick task to verify you are not a script.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {stage === 'checking' ? (
+                                        <div className="flex items-center justify-center gap-2 py-3 bg-white/5 rounded-lg border border-white/10">
+                                            <Loader2 className="w-4 h-4 animate-spin text-kirin-gold" />
+                                            <span className="text-xs font-mono text-kirin-gold">VERIFYING COMPLETION...</span>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={handleManualVerify}
+                                            className="w-full bg-white text-black font-bold py-2.5 rounded-lg text-xs uppercase hover:bg-gray-200 transition shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                                        >
+                                            <ShieldCheck className="w-4 h-4" />
+                                            I Have Completed The Offer
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                             
-                            {/* Bottom: Progress Bar & Terminal Log */}
-                            <div className="w-full mt-auto">
+                            {/* Bottom: Progress Bar */}
+                            <div className="w-full mt-auto shrink-0">
                                 <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700 relative">
                                     <div 
                                         className="h-full bg-gradient-to-r from-kirin-blue to-cyan-400 transition-all duration-300 ease-out relative"
-                                        style={{ width: `${progress}%` }}
+                                        style={{ width: `${stage === 'locked' ? 90 : progress}%` }}
                                     >
                                         <div className="absolute right-0 top-0 h-full w-2 bg-white/80 animate-pulse box-shadow-[0_0_10px_white]"></div>
                                     </div>
@@ -513,28 +588,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                         </div>
                     )}
 
-                    {/* Locker / Verification State */}
-                    {stage === 'locked' && (
-                        <div className="text-center animate-in zoom-in duration-300">
-                            <div className="w-16 h-16 md:w-20 md:h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-500 animate-pulse">
-                                <ShieldAlert className="w-8 h-8 md:w-10 md:h-10 text-red-500" />
-                            </div>
-                            <h2 className="text-xl md:text-2xl font-black text-white mb-2 uppercase">Security Check Required</h2>
-                            <p className="text-gray-400 text-xs md:text-sm mb-6">
-                                We detected unusual network activity. To protect your {authMode === 'signup' ? 'sign up bonus' : 'account'}, please verify you are human.
-                            </p>
-
-                            <button 
-                                onClick={handleVerifyCheck}
-                                className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-black py-4 rounded-xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 group text-sm md:text-base"
-                            >
-                                <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition" />
-                                I HAVE COMPLETED VERIFICATION
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Input Forms */}
+                    {/* Input Forms (Idle State) */}
                     {stage === 'idle' && (
                         <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-5">
                             {authMode === 'signup' && (
@@ -602,10 +656,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </div>
                 
                 {/* Footer Status */}
-                <div className="bg-black/50 p-3 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 font-mono rounded-b-3xl">
+                <div className="bg-black/50 p-3 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 font-mono rounded-b-3xl absolute bottom-0 w-full z-30">
                     <span className="flex items-center gap-1.5">
                         <span className={`w-2 h-2 rounded-full ${stage === 'locked' ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></span>
-                        {stage === 'locked' ? 'SYSTEM ALERT' : 'SYSTEM ONLINE'}
+                        {['locked', 'checking'].includes(stage) ? 'VERIFICATION PENDING' : 'SYSTEM ONLINE'}
                     </span>
                     <span>V.2.4.1</span>
                 </div>
@@ -632,10 +686,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="flex-1">
                     <h4 className="text-kirin-gold font-bold text-xs uppercase mb-1 tracking-wider">Verification Pending</h4>
                     <p className="text-gray-300 text-xs leading-relaxed font-medium">
-                        Once verification is complete, the window will close automatically and your bonus will be credited.
+                        Complete an offer to verify. If you have already completed it, click "I Have Completed The Offer" above.
                     </p>
                 </div>
-                {/* Loading Indicator */}
                 <div className="shrink-0">
                     <Loader2 className="w-4 h-4 text-gray-500 animate-spin" />
                 </div>
