@@ -554,8 +554,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                         </div>
                                         <div>
                                             <h3 className="text-white font-bold text-sm uppercase">Bot Protection</h3>
-                                            <p className="text-gray-400 text-[10px] leading-tight mt-1">
-                                                Complete one quick task to verify you are not a script.
+                                            <p className="text-gray-300 text-[10px] leading-tight mt-1">
+                                                To prevent abuse, please complete one quick task to verify your device. Your cash reward will be released instantly upon completion.
                                             </p>
                                         </div>
                                     </div>
