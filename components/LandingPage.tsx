@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed, ScanLine, Laptop, CreditCard, Ticket } from 'lucide-react';
+import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed, ScanLine, Laptop, CreditCard, Ticket, Download } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: (username: string) => void;
@@ -431,17 +431,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 
                 {/* Bonus Badge */}
                 {stage === 'idle' && (
-                    <div className="inline-flex items-center gap-3 bg-gradient-to-r from-slate-900 to-slate-800 border border-kirin-gold/50 rounded-full px-4 py-2 md:px-6 shadow-[0_0_20px_rgba(255,215,0,0.2)] max-w-full transition-all duration-500">
-                        <div className="relative">
-                            <Coins className="w-6 h-6 text-yellow-400 animate-bounce shrink-0" />
-                            <Zap className="w-3 h-3 text-white absolute -top-1 -right-1 animate-pulse" />
-                        </div>
-                        <div className="text-left leading-tight">
-                            <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-1">
-                                Pending Bonus <span className="text-green-500 text-[9px] animate-pulse">● LIVE</span>
+                    <div className="relative group animate-in fade-in slide-in-from-bottom-4 duration-700 mt-2 cursor-default">
+                        {/* Glow Background */}
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-kirin-gold/0 via-kirin-gold/30 to-kirin-gold/0 rounded-xl blur opacity-50 group-hover:opacity-100 transition duration-700"></div>
+                        
+                        <div className="relative bg-[#0a0f1c] border border-kirin-gold/30 rounded-xl p-4 flex items-center gap-5 shadow-2xl backdrop-blur-md min-w-[280px] md:min-w-[320px] overflow-hidden">
+                            {/* Decorative scanline */}
+                            <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]"></div>
+
+                            {/* Left: Icon Cluster */}
+                            <div className="relative shrink-0">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-500/20 to-orange-700/20 border border-kirin-gold/30 p-1 shadow-inner flex items-center justify-center relative overflow-hidden">
+                                     <div className="absolute inset-0 bg-kirin-gold/10 animate-pulse"></div>
+                                     <Coins className="w-7 h-7 text-kirin-gold drop-shadow-[0_0_10px_rgba(255,215,0,0.5)] z-10" />
+                                </div>
+                                <div className="absolute -bottom-1.5 -right-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-lg border border-green-400 flex items-center gap-1 z-20">
+                                    <Zap className="w-2.5 h-2.5 fill-current animate-pulse" />
+                                    <span>READY</span>
+                                </div>
                             </div>
-                            <div className="text-lg md:text-xl font-black text-white tabular-nums transition-all duration-300">
-                                {displayBonus.toLocaleString()} <span className="text-xs text-yellow-500">COINS</span>
+
+                            {/* Right: Text Data */}
+                            <div className="flex-1 flex flex-col justify-center relative z-10">
+                                <div className="flex justify-between items-center w-full mb-1">
+                                    <span className="text-[10px] font-bold text-orange-200/80 uppercase tracking-widest">Unclaimed Assets</span>
+                                </div>
+                                <div className="flex items-baseline gap-2">
+                                     <span className="text-4xl font-black text-white tabular-nums tracking-tighter drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] font-sans">
+                                        {displayBonus.toLocaleString()}
+                                     </span>
+                                     <span className="text-[10px] font-bold text-kirin-gold mb-1.5">COINS</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -727,15 +747,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </div>
             </div>
             
-            <div className="mt-6 text-center w-full">
+            <div className="mt-6 text-center w-full pb-24">
                  <div className="inline-flex items-center gap-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 mb-2">
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-[10px] md:text-xs text-gray-300 font-mono font-bold tracking-wider">{playersOnline.toLocaleString()} PLAYERS ONLINE</span>
                  </div>
-                 <p className="text-[10px] text-gray-600">
-                    By accessing Fire Kirin, you agree to the virtual terms of service. 
-                    <br/>Anti-cheat protocols are enforced globally.
-                 </p>
+            </div>
+
+            {/* New Fixed Download Button */}
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 w-full max-w-sm px-4">
+                <button className="w-full bg-gradient-to-r from-kirin-blue to-blue-600 text-white font-black italic tracking-wider py-3.5 rounded-full shadow-[0_0_25px_rgba(0,191,255,0.4)] border border-white/20 flex items-center justify-center gap-3 hover:scale-105 active:scale-95 transition-all group overflow-hidden relative">
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                    <Download className="w-5 h-5 animate-bounce" />
+                    <span>DOWNLOAD FIRE KIRIN APP</span>
+                </button>
             </div>
         </div>
 
