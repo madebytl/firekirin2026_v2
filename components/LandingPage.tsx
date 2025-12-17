@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed, ScanLine, Laptop } from 'lucide-react';
+import { Play, Sparkles, Lock, ShieldAlert, Coins, Users, Clock, ShieldCheck, Loader2, UserPlus, LogIn, Globe, ChevronRight, Terminal, Gift, Info, Bell, Trophy, Star, TrendingUp, Zap, Wifi, Database, Server, CheckCircle2, CircleDashed, ScanLine, Laptop, CreditCard, Ticket } from 'lucide-react';
 
 interface LandingPageProps {
   onLogin: (username: string) => void;
@@ -46,6 +46,9 @@ const generateRandomActivity = () => {
 const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   const [authMode, setAuthMode] = useState<AuthMode>('signup'); 
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [couponCode, setCouponCode] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('CASHAPP');
   const [region, setRegion] = useState('NA_EAST');
   
   // Game Stats Simulation - Dynamic Init
@@ -349,7 +352,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) return;
+    if (!username.trim() || !password.trim()) return;
 
     if (stage === 'verified') {
         onLogin(username);
@@ -590,7 +593,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
                     {/* Input Forms (Idle State) */}
                     {stage === 'idle' && (
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-4 md:gap-5">
+                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                             {authMode === 'signup' && (
                                 <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-xl mb-1 flex items-start gap-3">
                                     <Sparkles className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
@@ -603,7 +606,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                 </div>
                             )}
 
-                            <div className="space-y-4">
+                            <div className="space-y-3">
                                 <div>
                                     <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
                                         {authMode === 'signup' ? 'Choose Agent Alias' : 'Enter Player ID'}
@@ -612,10 +615,64 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                         type="text" 
                                         value={username}
                                         onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-4 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm md:text-base"
+                                        className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
                                         placeholder={authMode === 'signup' ? "NEW USERNAME" : "EXISTING ID"}
                                         maxLength={12}
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                        Create Password
+                                    </label>
+                                    <div className="relative">
+                                        <input 
+                                            type="password" 
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
+                                            placeholder="••••••••"
+                                        />
+                                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                            Coupon Code
+                                        </label>
+                                        <div className="relative">
+                                            <input 
+                                                type="text" 
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value)}
+                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none text-sm placeholder:text-gray-700"
+                                                placeholder="OPTIONAL"
+                                            />
+                                            <Ticket className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                            Payment Method
+                                        </label>
+                                        <div className="relative">
+                                            <select 
+                                                value={paymentMethod}
+                                                onChange={(e) => setPaymentMethod(e.target.value)}
+                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-3 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-xs md:text-sm"
+                                            >
+                                                <option value="CASHAPP">Cash App</option>
+                                                <option value="VENMO">Venmo</option>
+                                                <option value="PAYPAL">PayPal</option>
+                                                <option value="BTC">Bitcoin</option>
+                                                <option value="ZELLE">Zelle</option>
+                                            </select>
+                                            <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {authMode === 'signup' && (
@@ -627,14 +684,14 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                             <select 
                                                 value={region}
                                                 onChange={(e) => setRegion(e.target.value)}
-                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-4 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-sm md:text-base"
+                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-sm"
                                             >
                                                 <option value="NA_EAST">North America (East)</option>
                                                 <option value="NA_WEST">North America (West)</option>
                                                 <option value="EU">Europe</option>
                                                 <option value="ASIA">Asia Pacific</option>
                                             </select>
-                                            <Globe className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5 pointer-events-none" />
+                                            <Globe className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
                                         </div>
                                     </div>
                                 )}
@@ -642,7 +699,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
                             <button 
                                 type="submit" 
-                                disabled={!username.trim()}
+                                disabled={!username.trim() || !password.trim()}
                                 className="group relative w-full bg-gradient-to-r from-kirin-gold to-orange-600 hover:from-yellow-400 hover:to-orange-500 text-black font-black text-lg md:text-xl py-4 md:py-5 rounded-xl shadow-[0_0_20px_rgba(255,165,0,0.4)] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale overflow-hidden mt-2"
                             >
                                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-[shimmer_2s_infinite]"></div>
