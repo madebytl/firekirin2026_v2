@@ -392,15 +392,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black animate-pulse-fast fixed"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-40 fixed"></div>
         
-        {/* Urgency Header */}
-        <div className="fixed top-0 left-0 right-0 w-full bg-red-600/20 border-b border-red-500/50 backdrop-blur-sm p-1.5 md:p-2 flex flex-col md:flex-row justify-center items-center gap-1 md:gap-4 z-50">
-            <div className="flex items-center gap-2 animate-pulse">
-                <ShieldAlert className="w-3 h-3 md:w-4 md:h-4 text-red-400" />
-                <span className="text-red-100 text-[10px] md:text-xs font-bold tracking-widest uppercase">High Traffic: Server Capacity 99%</span>
+        {/* Status Header - Calmer */}
+        <div className="fixed top-0 left-0 right-0 w-full bg-slate-950/80 border-b border-white/10 backdrop-blur-md p-2 flex justify-center items-center gap-6 z-50">
+            <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="text-emerald-400/80 text-[10px] font-bold tracking-wider uppercase">Stable Connection</span>
             </div>
-            <div className="flex items-center gap-2 text-kirin-gold text-[10px] md:text-xs font-mono">
+            <div className="hidden md:flex items-center gap-2 text-gray-500 text-[10px] font-mono border-l border-white/10 pl-4">
+                <Server className="w-3 h-3" />
+                <span>US-EAST-1</span>
+            </div>
+            <div className="flex items-center gap-2 text-kirin-blue/80 text-[10px] font-mono border-l border-white/10 pl-4">
                 <Users className="w-3 h-3" />
-                <span>{slotsLeft} SLOTS REMAINING</span>
+                <span>{playersOnline.toLocaleString()} ONLINE</span>
             </div>
         </div>
 
