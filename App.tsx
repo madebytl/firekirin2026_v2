@@ -27,7 +27,7 @@ const App = () => {
   const handleLogin = (user: string) => {
       setUsername(user);
       setMessages([
-        { role: 'model', text: `Welcome to FIRE KIRIN SIMULATOR, ${user}! I'm the Boss here. Need chips? Just ask!` }
+        { role: 'model', text: `Welcome to FIRE KIRIN ONLINE, ${user}! I'm the Boss here. Need chips? Just ask!` }
       ]);
       setHasEntered(true);
       // Trigger locker check again on entry
