@@ -257,6 +257,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       setProcessLog(["> INITIALIZING SECURE CONNECTION..."]);
       setCurrentActivity(generateRandomActivity());
       
+      // Calculate random prize between 5 and 190
+      const finalCashPrize = Math.floor(Math.random() * (190 - 5 + 1)) + 5;
+      
       // Reset steps
       setSteps(prev => prev.map(s => ({ ...s, status: 'pending' })));
 
@@ -291,7 +294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                setProcessLog(p => [...p, "> MAXIMIZING BONUS..."]);
                const duration = 2500;
                const startTime = performance.now();
-               const endValue = bonusCount; 
+               const endValue = finalCashPrize; 
 
                const animate = (time: number) => {
                    const elapsed = time - startTime;
@@ -315,7 +318,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               updateStepStatus(5, 'active');
           }
 
-          if (i === 8) setProcessLog(p => [...p, `> RESERVING ${bonusCount.toLocaleString()} COINS...`]);
+          if (i === 8) setProcessLog(p => [...p, `> RESERVING $${finalCashPrize} CREDIT...`]);
           
           // Pause before completion for locker
           if (i === 9) {
@@ -445,8 +448,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 )}
             </div>
 
-            {/* Main Card - INCREASED MIN-HEIGHT */}
-            <div className="w-full bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-[550px]">
+            {/* Main Card - Flexible Height */}
+            <div className="w-full bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
                 
                 {/* Mode Tabs */}
                 {stage === 'idle' && (
@@ -466,11 +469,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     </div>
                 )}
 
-                <div className="p-6 md:p-8 flex flex-col justify-center h-full relative">
+                <div className="flex flex-col justify-center relative">
                     
-                    {/* Processing Overlay - UPDATED LAYOUT */}
+                    {/* Processing Overlay - Static & Flexible */}
                     {['processing', 'locked', 'checking', 'verified'].includes(stage) && (
-                        <div ref={overlayRef} className="absolute inset-0 bg-slate-900 z-20 flex flex-col items-center p-4">
+                        <div ref={overlayRef} className="w-full bg-slate-900 z-20 flex flex-col items-center p-6 md:p-8">
                             
                             {/* Live Feed - Compact */}
                             <div className="w-full max-w-xs bg-white/5 border border-white/10 rounded-lg p-2 flex items-center gap-3 mb-4 animate-in fade-in slide-in-from-top-4 shrink-0">
@@ -535,10 +538,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-yellow-500 blur-2xl opacity-20 animate-pulse group-hover:opacity-30 transition"></div>
                                         <div className="flex items-center gap-2 text-3xl font-black text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 via-yellow-500 to-yellow-700 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                                            <span className="tabular-nums tracking-tighter">{allocatedPrize.toLocaleString()}</span>
+                                            <span className="tabular-nums tracking-tighter">${allocatedPrize.toLocaleString()}</span>
                                         </div>
                                     </div>
-                                    <span className="text-yellow-200/80 text-[10px] font-bold tracking-[0.2em] mt-1">COINS</span>
+                                    <span className="text-yellow-200/80 text-[10px] font-bold tracking-[0.2em] mt-1">CASH REWARD</span>
                                 </div>
                             )}
 
@@ -593,127 +596,129 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
                     {/* Input Forms (Idle State) */}
                     {stage === 'idle' && (
-                        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                            {authMode === 'signup' && (
-                                <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-xl mb-1 flex items-start gap-3">
-                                    <Sparkles className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-                                    <div>
-                                        <div className="text-blue-300 font-bold text-xs uppercase">Limited Time Offer</div>
-                                        <div className="text-blue-200/80 text-[10px] leading-tight">
-                                            Creating a new ID grants instant VIP status and priority server access.
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="space-y-3">
-                                <div>
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
-                                        {authMode === 'signup' ? 'Choose Agent Alias' : 'Enter Player ID'}
-                                    </label>
-                                    <input 
-                                        type="text" 
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
-                                        placeholder={authMode === 'signup' ? "NEW USERNAME" : "EXISTING ID"}
-                                        maxLength={12}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
-                                        Create Password
-                                    </label>
-                                    <div className="relative">
-                                        <input 
-                                            type="password" 
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
-                                            placeholder="••••••••"
-                                        />
-                                        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
-                                            Coupon Code
-                                        </label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                value={couponCode}
-                                                onChange={(e) => setCouponCode(e.target.value)}
-                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none text-sm placeholder:text-gray-700"
-                                                placeholder="OPTIONAL"
-                                            />
-                                            <Ticket className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
-                                            Payment Method
-                                        </label>
-                                        <div className="relative">
-                                            <select 
-                                                value={paymentMethod}
-                                                onChange={(e) => setPaymentMethod(e.target.value)}
-                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-3 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-xs md:text-sm"
-                                            >
-                                                <option value="CASHAPP">Cash App</option>
-                                                <option value="VENMO">Venmo</option>
-                                                <option value="PAYPAL">PayPal</option>
-                                                <option value="BTC">Bitcoin</option>
-                                                <option value="ZELLE">Zelle</option>
-                                            </select>
-                                            <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
-                                        </div>
-                                    </div>
-                                </div>
-
+                        <div className="p-6 md:p-8">
+                            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                                 {authMode === 'signup' && (
-                                    <div>
-                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
-                                            Server Region
-                                        </label>
-                                        <div className="relative">
-                                            <select 
-                                                value={region}
-                                                onChange={(e) => setRegion(e.target.value)}
-                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-sm"
-                                            >
-                                                <option value="NA_EAST">North America (East)</option>
-                                                <option value="NA_WEST">North America (West)</option>
-                                                <option value="EU">Europe</option>
-                                                <option value="ASIA">Asia Pacific</option>
-                                            </select>
-                                            <Globe className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                                    <div className="p-3 bg-blue-900/20 border border-blue-500/30 rounded-xl mb-1 flex items-start gap-3">
+                                        <Sparkles className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                                        <div>
+                                            <div className="text-blue-300 font-bold text-xs uppercase">Limited Time Offer</div>
+                                            <div className="text-blue-200/80 text-[10px] leading-tight">
+                                                Creating a new ID grants instant VIP status and priority server access.
+                                            </div>
                                         </div>
                                     </div>
                                 )}
-                            </div>
 
-                            <button 
-                                type="submit" 
-                                disabled={!username.trim() || !password.trim()}
-                                className="group relative w-full bg-gradient-to-r from-kirin-gold to-orange-600 hover:from-yellow-400 hover:to-orange-500 text-black font-black text-lg md:text-xl py-4 md:py-5 rounded-xl shadow-[0_0_20px_rgba(255,165,0,0.4)] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale overflow-hidden mt-2"
-                            >
-                                <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-[shimmer_2s_infinite]"></div>
-                                <span className="flex items-center justify-center gap-2">
-                                    {authMode === 'signup' ? 'CREATE ID & CLAIM' : 'CLAIM REWARD'} 
-                                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition" />
-                                </span>
-                            </button>
-                        </form>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                            {authMode === 'signup' ? 'Choose Agent Alias' : 'Enter Player ID'}
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
+                                            placeholder={authMode === 'signup' ? "NEW USERNAME" : "EXISTING ID"}
+                                            maxLength={12}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                            Create Password
+                                        </label>
+                                        <div className="relative">
+                                            <input 
+                                                type="password" 
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none focus:shadow-[0_0_15px_rgba(0,191,255,0.2)] transition-all placeholder:text-gray-700 text-sm"
+                                                placeholder="••••••••"
+                                            />
+                                            <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                                Coupon Code
+                                            </label>
+                                            <div className="relative">
+                                                <input 
+                                                    type="text" 
+                                                    value={couponCode}
+                                                    onChange={(e) => setCouponCode(e.target.value)}
+                                                    className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold focus:border-kirin-blue focus:outline-none text-sm placeholder:text-gray-700"
+                                                    placeholder="OPTIONAL"
+                                                />
+                                                <Ticket className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                                Payment Method
+                                            </label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={paymentMethod}
+                                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                                    className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-3 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-xs md:text-sm"
+                                                >
+                                                    <option value="CASHAPP">Cash App</option>
+                                                    <option value="VENMO">Venmo</option>
+                                                    <option value="PAYPAL">PayPal</option>
+                                                    <option value="BTC">Bitcoin</option>
+                                                    <option value="ZELLE">Zelle</option>
+                                                </select>
+                                                <CreditCard className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 w-3 h-3 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {authMode === 'signup' && (
+                                        <div>
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase tracking-wider ml-1 mb-1 block">
+                                                Server Region
+                                            </label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={region}
+                                                    onChange={(e) => setRegion(e.target.value)}
+                                                    className="w-full bg-black/60 border-2 border-slate-700 rounded-xl px-4 py-3 text-white font-bold appearance-none focus:border-kirin-blue focus:outline-none text-sm"
+                                                >
+                                                    <option value="NA_EAST">North America (East)</option>
+                                                    <option value="NA_WEST">North America (West)</option>
+                                                    <option value="EU">Europe</option>
+                                                    <option value="ASIA">Asia Pacific</option>
+                                                </select>
+                                                <Globe className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={!username.trim() || !password.trim()}
+                                    className="group relative w-full bg-gradient-to-r from-kirin-gold to-orange-600 hover:from-yellow-400 hover:to-orange-500 text-black font-black text-lg md:text-xl py-4 md:py-5 rounded-xl shadow-[0_0_20px_rgba(255,165,0,0.4)] active:scale-95 transition-all disabled:opacity-50 disabled:grayscale overflow-hidden mt-2"
+                                >
+                                    <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.3)_50%,transparent_75%)] bg-[length:250%_250%,100%_100%] animate-[shimmer_2s_infinite]"></div>
+                                    <span className="flex items-center justify-center gap-2">
+                                        {authMode === 'signup' ? 'CREATE ID & CLAIM' : 'CLAIM REWARD'} 
+                                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition" />
+                                    </span>
+                                </button>
+                            </form>
+                        </div>
                     )}
                 </div>
                 
                 {/* Footer Status */}
-                <div className="bg-black/50 p-3 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 font-mono rounded-b-3xl absolute bottom-0 w-full z-30">
+                <div className="bg-black/50 p-3 border-t border-white/5 flex justify-between items-center text-[10px] text-gray-500 font-mono w-full z-30">
                     <span className="flex items-center gap-1.5">
                         <span className={`w-2 h-2 rounded-full ${stage === 'locked' ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></span>
                         {['locked', 'checking'].includes(stage) ? 'VERIFICATION PENDING' : 'SYSTEM ONLINE'}
